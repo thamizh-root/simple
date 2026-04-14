@@ -1,0 +1,196 @@
+{
+  "main": {
+    "id": "1e3a7250facb87c0",
+    "type": "split",
+    "children": [
+      {
+        "id": "9a5cb9dc7b2c940d",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "51263f3b591d7bf7",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Week 01 - Root Scheduling + Render.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Week 01 - Root Scheduling + Render"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "c52e12034502c4bc",
+    "type": "split",
+    "children": [
+      {
+        "id": "73d572d9d895dbca",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b018891ac35d7738",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "6791be5b49b1a066",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "0246ef15f066b269",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "14cff69d7f8e8ea7",
+    "type": "split",
+    "children": [
+      {
+        "id": "a06865f02a2eeaec",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1fdbb47e8b4140bb",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Week 01 - Root Scheduling + Render.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for Week 01 - Root Scheduling + Render"
+            }
+          },
+          {
+            "id": "396f7af124fcf645",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Week 01 - Root Scheduling + Render.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Week 01 - Root Scheduling + Render"
+            }
+          },
+          {
+            "id": "7efd9e79f46f0a77",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "186ed104c000d55c",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "54ae192749a90db7",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Week 01 - Root Scheduling + Render.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Week 01 - Root Scheduling + Render"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "51263f3b591d7bf7",
+  "lastOpenFiles": [
+    "Chatting Texts Goes Here - Not On LLM.md",
+    "Week 01 - Root Scheduling + Render.md",
+    "Time Table.md",
+    "Untitled.base",
+    "2026-04-10.md",
+    "General Notes.md",
+    "Welcome.md"
+  ]
+}
