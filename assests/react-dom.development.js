@@ -16702,6 +16702,8 @@
       next: null
     };
 
+    console.log("Created Update Object:", update);
+
     if (isRenderPhaseUpdate(fiber)) {
       enqueueRenderPhaseUpdate(queue, update);
     } else {
@@ -16750,7 +16752,9 @@
         }
       }
 
+      console.log("⚓ About to enqueue update for Fiber:", typeof fiber, { ...fiber });
       var root = enqueueConcurrentHookUpdate(fiber, queue, update, lane);
+      console.log("📍 Root found:", typeof root, { ...root });
 
       if (root !== null) {
         var eventTime = requestEventTime();
@@ -21604,6 +21608,17 @@
 
   function beginWork(current, workInProgress, renderLanes) {
     {
+
+      console.log("%c beginWork: does reconciliation (compare old fiber vs new props).", "color: yellow;");
+      console.log("%c beginWork: decides update/bailout and creates child fibers if needed.", "color: yellow;");
+
+      console.log(
+        "%c ↓ beginWork: %s | lanes: %o",
+        "color: green;",
+        workInProgress.type?.name || workInProgress.type,
+        workInProgress.lanes
+      );
+
       if (workInProgress._debugNeedsRemount && current !== null) {
         // This will restart the begin phase with a new fiber.
         return remountFiber(current, workInProgress, createFiberFromTypeAndProps(workInProgress.type, workInProgress.key, workInProgress.pendingProps, workInProgress._debugOwner || null, workInProgress.mode, workInProgress.lanes));
@@ -22151,6 +22166,17 @@
   }
 
   function completeWork(current, workInProgress, renderLanes) {
+
+    // console.log("%c completeWork: runs on the way up, finalizing the fiber.", "color: yellow;");
+    // console.log("%c completeWork: creates DOM nodes and sets effect flags (Placement, Update, etc).", "color: yellow;");
+
+    console.log(
+      "%c ↑ completeWork: %s | flags: %o",
+      "color: orange;",
+      workInProgress.type?.name || workInProgress.type,
+      workInProgress.flags
+    );
+
     var newProps = workInProgress.pendingProps; // Note: This intentionally doesn't check if we're hydrating because comparing
     // to the current tree provider fiber is just as fast and less error-prone.
     // Ideally we would have a special version of the work loop only
@@ -26205,6 +26231,11 @@
         pendingLanes: root.pendingLanes,
       });
 
+      console.trace("who called this?");
+
+      console.log("%c performSyncWorkOnRoot: this is entry point of render phase.", "color: yellow;");
+      console.log("%c performSyncWorkOnRoot: takes root, prepares stock, calls renderRootSync.", "color: yellow;");
+
       // what to observe
       // sync path = “do it now”
       // often easier to understand than concurrent first
@@ -26545,6 +26576,9 @@
     // what to observe
     // “ok, scheduling is done, now React starts building work-in-progress”
 
+    console.log("%c renderRootSync: initializes render and sets workInProgress tree.", "color: yellow;");
+    console.log("%c renderRootSync: starts work loop to process fibers (beginWork → completeWork).", "color: yellow;");
+
 
     var prevExecutionContext = executionContext;
     executionContext |= RenderContext;
@@ -26611,6 +26645,9 @@
   function workLoopSync() {
     console.log("[9] workLoopSync START");
     console.log("this is the heartbeat");
+
+    console.log("%c workLoopSync: core engine that runs fiber processing loop.", "color: yellow;");
+    console.log("%c workLoopSync: keeps picking next fiber and processing until no work left.", "color: yellow;");
 
     //     what to observe
     // repeated traversal
@@ -26707,6 +26744,10 @@
   }
 
   function performUnitOfWork(unitOfWork) {
+
+    console.log("%c performUnitOfWork: processes a single fiber (one unit of work).", "color: yellow;");
+    console.log("%c performUnitOfWork: runs beginWork, then goes to child or completes the fiber.", "color: yellow;");
+
     // The current, flushed, state of this fiber is the alternate. Ideally
     // nothing should rely on this, but relying on it here means that we don't
     // need an additional field on the work in progress.

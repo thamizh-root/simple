@@ -9,6 +9,28 @@
 <body>
     <div id="root"></div>
 
+    <script>
+        var exports = {};
+    </script>
+
+    <script src="./lib/dom-to-json@0.0.4.js"></script>
+    <script src="./lib/flatted@3.4.2.js"></script>
+    <!-- <script src="./lib/serialize-javascript@7.0.5.js"></script> -->
+
+    <script>
+        // Note: serialize-javascript usually exports to module.exports.
+        // Since it failed, let's use a standard browser-friendly replacement
+        // for deep-viewing objects.
+        window.serialize = (obj, options) => {
+            try {
+                return JSON.stringify(obj, null, 2);
+            } catch (e) {
+                return "[Circular Tree - Use Flatted]";
+            }
+        };
+    </script>
+
+
     <script src="./assests/react.development.js"></script>
     <script src="./assests/react-dom.development.js"></script>
     <script src="./index.js"></script>
