@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React clz32 Radar Gun</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --primary: #38bdf8;
+            --secondary: #818cf8;
+            --accent: #f472b6;
+            --radar: #fbbf24;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        /* Radar Gun UI */
+        .radar-dashboard {
+            display: flex;
+            justify-content: space-around;
+            background: #020617;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid var(--radar);
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.1);
+        }
+
+        .radar-stat { flex: 1; }
+        .radar-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--radar);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .radar-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+
+        .controls { display: flex; flex-direction: column; gap: 10px; }
+        
+        button {
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary);
+            color: var(--bg);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        button.secondary { background: var(--secondary); color: white; }
+        button.accent { background: var(--accent); color: white; }
+        button.flush { background: #10b981; color: white; }
+
+        .log {
+            height: 380px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 15px;
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            scroll-behavior: smooth;
+            transition: background-color 0.4s ease;
+        }
+
+        .log-entry { margin-bottom: 4px; border-left: 2px solid #334155; padding-left: 10px; }
+        .log-entry.header { border-left: none; padding: 0; margin-top: 10px; border-bottom: 1px solid #334155; color: var(--primary); font-weight: bold; }
+        
+        .log-entry.final-result {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            padding: 8px;
+            margin: 5px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .bits { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
+        .bit {
+            width: 24px; height: 35px; background: #334155; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center; font-size: 10px;
+        }
+        .bit.active { background: var(--primary); color: var(--bg); font-weight: bold; box-shadow: 0 0 10px var(--primary); }
+        .bit.target { border: 2px solid var(--radar); transform: scale(1.1); }
+
+        .binary-view {
+            font-family: monospace; background: #020617; padding: 8px; border-radius: 6px;
+            text-align: center; color: var(--primary); font-size: 1.1rem; letter-spacing: 4px; border: 1px dashed #334155;
+        }
+
+        .btn-group { display: flex; gap: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>React <code>clz32</code> Radar Gun</h1>
+            <p>How React uses Leading Zeros to find the Highway Lane.</p>
+        </header>
+
+        <!-- RADAR GUN DASHBOARD -->
+        <div class="radar-dashboard">
+            <div class="radar-stat">
+                <div class="radar-value" id="val-clz">32</div>
+                <div class="radar-label">Leading Zeros</div>
+            </div>
+            <div class="radar-stat">
+                <div class="radar-value" id="val-index">-</div>
+                <div class="radar-label">Highest Bit Index</div>
+            </div>
+            <div class="radar-stat">
+                <div class="radar-value" id="val-total">0</div>
+                <div class="radar-label">Total Value</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>1. Controls</h3>
+                <div class="controls">
+                    <button onclick="dispatch('DISCRETE')">Add Sync (1)</button>
+                    <div class="btn-group">
+                        <button style="flex:1" class="secondary" onclick="dispatch('CONTINUOUS')">Continuous (4)</button>
+                        <button style="flex:1" class="secondary" onclick="dispatch('DEFAULT')">Add Default (16)</button>
+                    </div>
+                    <button class="accent" onclick="dispatch('TRANSITION')">Add Transition (64+)</button>
+                    <button class="flush" onclick="flushWork()">🚀 Flush All</button>
+                    <button style="background: transparent; color: #ef4444; border: 1px solid #ef4444;" onclick="clearAll()">Reset</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>2. Logic Trace</h3>
+                <div id="log" class="log">
+                    <div class="log-entry">Waiting...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h3>3. Bitmask View</h3>
+            <div class="binary-view" id="binaryView">00000000000000000000000000000000</div>
+            <div class="bits" id="bits"></div>
+        </div>
+    </div>
+
+    <script>
+        let pendingLanes = 0;
+        let transitionBitCounter = 0;
+        let interactionCount = 0;
+
+        const logEl = document.getElementById('log');
+        const bitsEl = document.getElementById('bits');
+        const binaryEl = document.getElementById('binaryView');
+        const bgColors = ['#020617', '#0f172a', '#0c0a09', '#050505', '#09090b'];
+
+        // THE RADAR GUN LOGIC (From React Source)
+        function clz32(x) {
+            const asUint = x >>> 0;
+            if (asUint === 0) return 32;
+            // Use built-in or fallback logic
+            return Math.clz32 ? Math.clz32(asUint) : (31 - (Math.log(asUint) / Math.LN2 | 0) | 0);
+        }
+
+        function initBits() {
+            bitsEl.innerHTML = '';
+            for(let i = 31; i >= 0; i--) {
+                const bit = document.createElement('div');
+                bit.className = 'bit';
+                bit.id = `bit-${i}`;
+                bit.innerText = i;
+                bitsEl.appendChild(bit);
+            }
+        }
+
+        function addLog(msg, type = '') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            if (type === 'header') entry.innerHTML = `<div style="padding: 4px 0;">${msg}</div>`;
+            else if (type === 'process') entry.innerHTML = `<span style="color: #94a3b8; font-style: italic;">&nbsp;&nbsp;${msg}</span>`;
+            else if (type === 'final-result') entry.innerHTML = `<div style="color: #radar; font-weight: bold;">NEW PENDING: ${msg}</div>`;
+            else entry.innerText = msg;
+            logEl.prepend(entry);
+            logEl.scrollTop = 0;
+        }
+
+        function updateUI() {
+            const zeros = clz32(pendingLanes);
+            const highestIndex = pendingLanes === 0 ? "-" : (31 - zeros);
+
+            // Update Radar Gun
+            document.getElementById('val-clz').innerText = zeros;
+            document.getElementById('val-index').innerText = highestIndex;
+            document.getElementById('val-total').innerText = pendingLanes;
+
+            // Update Binary
+            binaryEl.innerText = (pendingLanes >>> 0).toString(2).padStart(32, '0');
+
+            // Update Bits
+            document.querySelectorAll('.bit').forEach(b => b.className = 'bit');
+            for(let i = 0; i < 32; i++) {
+                if ((pendingLanes & (1 << i))) {
+                    const bit = document.getElementById(`bit-${i}`);
+                    bit.classList.add('active');
+                    if (i === highestIndex) bit.classList.add('target');
+                }
+            }
+        }
+
+        function dispatch(type) {
+            interactionCount++;
+            logEl.style.backgroundColor = bgColors[interactionCount % bgColors.length];
+            addLog(`--- Trigger [${type}] ---`, 'header');
+            
+            let newBit = 0;
+            if (type === 'TRANSITION') {
+                newBit = 1 << (6 + (transitionBitCounter % 16));
+                transitionBitCounter++;
+            } else {
+                switch(type) {
+                    case 'DISCRETE': newBit = 1; break;
+                    case 'CONTINUOUS': newBit = 4; break;
+                    default: newBit = 16;
+                }
+            }
+            
+            pendingLanes |= newBit;
+            addLog(`pendingLanes |= ${newBit}`, 'process');
+            addLog(`clz32(${pendingLanes}) = ${clz32(pendingLanes)}`, 'process');
+            
+            updateUI();
+        }
+
+        function flushWork() {
+            pendingLanes = 0;
+            addLog(`--- FLUSHED ---`, 'header');
+            updateUI();
+        }
+
+        function clearAll() {
+            pendingLanes = 0;
+            transitionBitCounter = 0;
+            logEl.innerHTML = '<div class="log-entry">Reset.</div>';
+            updateUI();
+        }
+
+        initBits();
+    </script>
+</body>
+</html>

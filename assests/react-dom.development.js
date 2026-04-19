@@ -25697,7 +25697,7 @@
 
   function ensureRootIsScheduled(root, currentTime) {
 
-    // debugger;
+     debugger;
 
     console.log("[4] ensureRootIsScheduled", {
       pendingLanes: root.pendingLanes,

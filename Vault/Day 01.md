@@ -243,3 +243,13 @@ next:
 → performSyncWorkOnRoot OR performConcurrentWorkOnRoot
 ```
 
+
+
+   1. The Fiber (The Data): Look at ReactFiber.new.js. Understand that everything is a "Fiber" object with a
+      child, sibling, and return.
+   2. The Work Loop (The Engine): Look at ReactFiberWorkLoop.new.js. This is the while loop that processes those
+      Fibers.
+   3. BeginWork (The Decision): Look at ReactFiberBeginWork.new.js. This is where React decides if a component
+      needs an update.
+   4. CompleteWork (The Output): Look at ReactFiberCompleteWork.new.js. This is where React finally creates the
+      actual DOM elements.
