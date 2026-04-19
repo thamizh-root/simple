@@ -33,7 +33,68 @@
 
     <script src="./assests/react.development.js"></script>
     <script src="./assests/react-dom.development.js"></script>
-    <script src="./index.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+      const { useState, useTransition } = React;
+
+      // A simple component to show reconciliation
+      function ListItem({ name }) {
+        return <li>{name}</li>;
+      }
+
+      function SearchApp() {
+        const [query, setQuery] = useState("");
+        const [results, setResults] = useState([]);
+        const [isPending, startTransition] = useTransition();
+
+        const handleChange = (e) => {
+          const value = e.target.value;
+
+          // 1. URGENT UPDATE (SyncLane - 1)
+          // We want the input box to update immediately as the user types.
+          console.log("%c >>> 1. Calling setQuery (Urgent) <<<", "color: #f472b6; font-weight: bold;");
+          setQuery(value);
+
+          // 2. NON-URGENT UPDATE (TransitionLane - 64)
+          // Filtering 10,000 items is slow. We do it in a transition
+          // so it doesn't block the typing.
+          startTransition(() => {
+            console.log("%c >>> 2. Calling setResults (Transition) <<<", "color: #38bdf8; font-weight: bold;");
+            
+            // Simulate heavy computation
+            const filtered = Array.from({ length: 10000 }, (_, i) => `Result ${i}`)
+              .filter(item => item.toLowerCase().includes(value.toLowerCase()))
+              .slice(0, 10);
+            
+            setResults(filtered);
+          });
+        };
+
+        return (
+          <div style={{ padding: "40px", fontFamily: "sans-serif" }}>
+            <h1>Lane Learning Lab</h1>
+            <p>Type below and watch the console logs [1] through [5].</p>
+            
+            <input 
+              type="text" 
+              value={query} 
+              onChange={handleChange} 
+              placeholder="Type fast..."
+              style={{ padding: "10px", width: "300px", fontSize: "18px" }}
+            />
+
+            {isPending && <p style={{ color: "blue" }}>Working on background render...</p>}
+
+            <ul style={{ marginTop: "20px" }}>
+              {results.map(r => <ListItem key={r} name={r} />)}
+            </ul>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<SearchApp />);
+    </script>
 </body>
 
 </html>

@@ -16,6 +16,39 @@
 
   var ReactSharedInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
 
+  window.logLane = (lane) => {
+    if (lane === 0) return "NoLanes (0)";
+    if (lane === 1) return "Sync (1)";
+    if (lane === 4) return "Continuous (4)";
+    if (lane === 16) return "Default (16)";
+    if (lane >= 64 && lane <= 4194240) return `Transition (${lane})`;
+    return `Other (${lane})`;
+  };
+
+  window.snapshotFiber = (fiber) => {
+    if (!fiber) return null;
+    
+    // Dictionary of common tags
+    const tagMap = {
+      0: 'FunctionComp',
+      1: 'ClassComp',
+      3: 'Root',
+      5: 'HostComp (HTML)',
+      6: 'TextNode'
+    };
+
+    let readableName = fiber.type?.name || fiber.type || tagMap[fiber.tag] || `Tag ${fiber.tag}`;
+
+    return {
+      name: readableName,
+      tag: fiber.tag,
+      lanes: window.logLane(fiber.lanes),
+      childLanes: window.logLane(fiber.childLanes),
+      memoizedProps: { ...fiber.memoizedProps },
+      memoizedState: fiber.memoizedState ? "Has State" : "No State"
+    };
+  };
+
   var suppressWarning = false;
   function setSuppressWarning(newSuppressWarning) {
     {
@@ -16681,19 +16714,8 @@
   }
 
   function dispatchSetState(fiber, queue, action) {
-
-    console.log("--- 1. dispatchSetState ---");
-    console.log("Action:", action)
-
-
-    {
-      if (typeof arguments[3] === 'function') {
-        error("State updates from the useState() and useReducer() Hooks don't support the " + 'second callback argument. To execute a side effect after ' + 'rendering, declare it in the component body with useEffect().');
-      }
-    }
-
     var lane = requestUpdateLane(fiber);
-    console.log("Assigned Lane:", lane);
+    console.log(`[1] dispatchSetState | Action:`, action, `| Lane: ${window.logLane(lane)}`);
     var update = {
       lane: lane,
       action: action,
@@ -21607,23 +21629,10 @@
   }
 
   function beginWork(current, workInProgress, renderLanes) {
-    {
-
-      console.log("%c beginWork: does reconciliation (compare old fiber vs new props).", "color: yellow;");
-      console.log("%c beginWork: decides update/bailout and creates child fibers if needed.", "color: yellow;");
-
-      console.log(
-        "%c ↓ beginWork: %s | lanes: %o",
-        "color: green;",
-        workInProgress.type?.name || workInProgress.type,
-        workInProgress.lanes
-      );
-
-      if (workInProgress._debugNeedsRemount && current !== null) {
-        // This will restart the begin phase with a new fiber.
-        return remountFiber(current, workInProgress, createFiberFromTypeAndProps(workInProgress.type, workInProgress.key, workInProgress.pendingProps, workInProgress._debugOwner || null, workInProgress.mode, workInProgress.lanes));
-      }
-    }
+    console.log(`[5] beginWork | Component: ${workInProgress.type?.name || workInProgress.tag}`, {
+      fiber: window.snapshotFiber(workInProgress),
+      renderLanes: window.logLane(renderLanes)
+    });
 
     if (current !== null) {
       var oldProps = current.memoizedProps;
@@ -25507,24 +25516,21 @@
     // Special cases
     var mode = fiber.mode;
 
+    console.log(`[0] requestUpdateLane START | mode: ${mode}`);
+
     if ((mode & ConcurrentMode) === NoMode) {
+      console.log(`   >>> EXIT: Legacy Mode Detected. Forcing SyncLane (1).`);
       return SyncLane;
     } else if ((executionContext & RenderContext) !== NoContext && workInProgressRootRenderLanes !== NoLanes) {
-      // This is a render phase update. These are not officially supported. The
-      // old behavior is to give this the same "thread" (lanes) as
-      // whatever is currently rendering. So if you call `setState` on a component
-      // that happens later in the same render, it will flush. Ideally, we want to
-      // remove the special case and treat them as if they came from an
-      // interleaved event. Regardless, this pattern is not officially supported.
-      // This behavior is only a fallback. The flag only exists until we can roll
-      // out the setState warning, since existing code might accidentally rely on
-      // the current behavior.
-      return pickArbitraryLane(workInProgressRootRenderLanes);
+      const lane = pickArbitraryLane(workInProgressRootRenderLanes);
+      console.log(`   >>> EXIT: Render-phase update. Reusing current lane: ${window.logLane(lane)}`);
+      return lane;
     }
 
     var isTransition = requestCurrentTransition() !== NoTransition;
 
     if (isTransition) {
+      console.log(`   >>> DETECTED: Transition context is active.`);
       if (ReactCurrentBatchConfig$3.transition !== null) {
         var transition = ReactCurrentBatchConfig$3.transition;
 
@@ -25533,42 +25539,29 @@
         }
 
         transition._updatedFibers.add(fiber);
-      } // The algorithm for assigning an update to a lane should be stable for all
-      // updates at the same priority within the same event. To do this, the
-      // inputs to the algorithm must be the same.
-      //
-      // The trick we use is to cache the first of each of these inputs within an
-      // event. Then reset the cached values once we can be sure the event is
-      // over. Our heuristic for that is whenever we enter a concurrent work loop.
+      } 
 
 
       if (currentEventTransitionLane === NoLane) {
-        // All transitions within the same event are assigned the same lane.
         currentEventTransitionLane = claimNextTransitionLane();
+        console.log(`   >>> ACTION: Claimed NEW transition bit: ${window.logLane(currentEventTransitionLane)}`);
+      } else {
+        console.log(`   >>> ACTION: Reusing existing transition bit: ${window.logLane(currentEventTransitionLane)}`);
       }
 
+      console.log(`   >>> EXIT: Transition Mode.`);
       return currentEventTransitionLane;
-    } // Updates originating inside certain React methods, like flushSync, have
-    // their priority set by tracking it with a context variable.
-    //
-    // The opaque type returned by the host config is internally a lane, so we can
-    // use that directly.
-    // TODO: Move this type conversion to the event priority module.
-
+    } 
 
     var updateLane = getCurrentUpdatePriority();
 
     if (updateLane !== NoLane) {
+      console.log(`   >>> EXIT: Manual Priority found (e.g. flushSync): ${window.logLane(updateLane)}`);
       return updateLane;
-    } // This update originated outside React. Ask the host environment for an
-    // appropriate priority, based on the type of event.
-    //
-    // The opaque type returned by the host config is internally a lane, so we can
-    // use that directly.
-    // TODO: Move this type conversion to the event priority module.
-
+    } 
 
     var eventLane = getCurrentEventPriority();
+    console.log(`   >>> EXIT: Default Host Event Priority: ${window.logLane(eventLane)}`);
     return eventLane;
   }
 
@@ -25587,11 +25580,7 @@
   }
 
   function scheduleUpdateOnFiber(root, fiber, lane, eventTime) {
-
-    console.log("[2] scheduleUpdateOnFiber", {
-      fiberTag: fiber?.tag,
-      lane,
-    });
+    console.log(`[2] scheduleUpdateOnFiber | Fiber: ${fiber.type?.name || fiber.tag} | Lane: ${window.logLane(lane)}`);
 
     // what to observe
     // every major update tends to flow through here
@@ -25696,27 +25685,13 @@
   // exiting a task.
 
   function ensureRootIsScheduled(root, currentTime) {
-
-     debugger;
-
-    console.log("[4] ensureRootIsScheduled", {
-      pendingLanes: root.pendingLanes,
-    });
-
-    // what to observe
-    // React looks at root’s pending lanes
-    // picks what should run next
-    // may cancel old callback and schedule a new one
-    // this is where “priority controls when render starts” becomes real
-
-
-
     var existingCallbackNode = root.callbackNode; // Check if any lanes are being starved by other work. If so, mark them as
     // expired so we know to work on those next.
 
     markStarvedLanesAsExpired(root, currentTime); // Determine the next lanes to work on, and their priority.
 
     var nextLanes = getNextLanes(root, root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes);
+    console.log(`[3] ensureRootIsScheduled | Next Lanes: ${window.logLane(nextLanes)}`);
 
     if (nextLanes === NoLanes) {
       // Special case: There's nothing to work on.
@@ -25734,27 +25709,13 @@
 
     var existingCallbackPriority = root.callbackPriority;
 
-    console.log("[4.1] chosen next lanes", nextLanes);
-    console.log("[4.2] existing callback priority", existingCallbackPriority);
-    console.log("[4.3] new callback priority", newCallbackPriority);
-
     if (existingCallbackPriority === newCallbackPriority && // Special case related to `act`. If the currently scheduled task is a
       // Scheduler task, rather than an `act` task, cancel it and re-scheduled
       // on the `act` queue.
       !(ReactCurrentActQueue$1.current !== null && existingCallbackNode !== fakeActCallbackNode)) {
       {
-        // If we're going to re-use an existing task, it needs to exist.
-        // Assume that discrete update microtasks are non-cancellable and null.
-        // TODO: Temporary until we confirm this warning is not fired.
-        if (existingCallbackNode == null && existingCallbackPriority !== SyncLane) {
-          error('Expected scheduled callback to exist. This error is likely caused by a bug in React. Please file an issue.');
-        }
-      } // The priority hasn't changed. We can reuse the existing task. Exit.
-
-
-
-
-
+        console.log(`[3.1] Reusing existing callback at priority: ${window.logLane(existingCallbackPriority)}`);
+      }
       return;
     }
 
@@ -26233,8 +26194,8 @@
 
       console.trace("who called this?");
 
-      console.log("%c performSyncWorkOnRoot: this is entry point of render phase.", "color: yellow;");
-      console.log("%c performSyncWorkOnRoot: takes root, prepares stock, calls renderRootSync.", "color: yellow;");
+     // console.log("%c performSyncWorkOnRoot: this is entry point of render phase.", "color: yellow;");
+     // console.log("%c performSyncWorkOnRoot: takes root, prepares stock, calls renderRootSync.", "color: yellow;");
 
       // what to observe
       // sync path = “do it now”
@@ -26576,8 +26537,8 @@
     // what to observe
     // “ok, scheduling is done, now React starts building work-in-progress”
 
-    console.log("%c renderRootSync: initializes render and sets workInProgress tree.", "color: yellow;");
-    console.log("%c renderRootSync: starts work loop to process fibers (beginWork → completeWork).", "color: yellow;");
+   // console.log("%c renderRootSync: initializes render and sets workInProgress tree.", "color: yellow;");
+   // console.log("%c renderRootSync: starts work loop to process fibers (beginWork → completeWork).", "color: yellow;");
 
 
     var prevExecutionContext = executionContext;
@@ -26643,24 +26604,13 @@
 
 
   function workLoopSync() {
-    console.log("[9] workLoopSync START");
-    console.log("this is the heartbeat");
-
-    console.log("%c workLoopSync: core engine that runs fiber processing loop.", "color: yellow;");
-    console.log("%c workLoopSync: keeps picking next fiber and processing until no work left.", "color: yellow;");
-
-    //     what to observe
-    // repeated traversal
-    // many iterations for one render
-    // now the “difference engine” becomes tangible
-
-
-    // Already timed out, so perform work without checking if we need to yield.
+    console.log("--- [START] workLoopSync ---");
     while (workInProgress !== null) {
-      console.log("[9.1] workLoopSync next unit", workInProgress?.tag);
-      console.log("Working on Fiber:", workInProgress.type?.name || workInProgress.type || "Host Component");
+      console.log(`[4] Processing Fiber: ${workInProgress.type?.name || workInProgress.tag}`, window.snapshotFiber(workInProgress));
+     // debugger;
       performUnitOfWork(workInProgress);
     }
+    console.log("--- [END] workLoopSync ---");
   }
 
   function renderRootConcurrent(root, lanes) {
@@ -26745,8 +26695,8 @@
 
   function performUnitOfWork(unitOfWork) {
 
-    console.log("%c performUnitOfWork: processes a single fiber (one unit of work).", "color: yellow;");
-    console.log("%c performUnitOfWork: runs beginWork, then goes to child or completes the fiber.", "color: yellow;");
+   // console.log("%c performUnitOfWork: processes a single fiber (one unit of work).", "color: yellow;");
+   // console.log("%c performUnitOfWork: runs beginWork, then goes to child or completes the fiber.", "color: yellow;");
 
     // The current, flushed, state of this fiber is the alternate. Ideally
     // nothing should rely on this, but relying on it here means that we don't
